@@ -15,7 +15,7 @@ _template/              starting point for a new project page (not linked from t
    `cp -r _template my-new-project`
 2. Edit `my-new-project/index.html` (everything in CAPITALS, and the sections).
 3. In `index.html`, copy one `<li class="project">` block to the top of the list and point it at `my-new-project/`.
-4. Add a line to the research log in `index.html` (newest first).
+4. Add a line to the research log in `index.html` (newest first, year only).
 5. Publish:
    ```
    git add .
