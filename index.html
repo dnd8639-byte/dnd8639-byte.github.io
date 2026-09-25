@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>David DeConti · Research archive</title>
+<meta name="description" content="David DeConti's research archive: tools for testing trading strategies honestly, and a record of every test, including the failures.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<main>
+  <header style="display:flex;flex-direction:column;gap:16px">
+    <div class="eyebrow">Research archive</div>
+    <h1>David DeConti</h1>
+    <!-- EDIT: add a sentence about yourself here (school, interests) whenever you like. -->
+    <p class="lede">I build systems for testing trading ideas honestly, and I keep a public record of every test I run, including the ones that fail.</p>
+    <p class="muted">Most trading strategies look profitable in a backtest and fail on new data. My work is about telling the difference: writing the plan down before running the test, counting every attempt, checking the tester on fake data where the answer is known, and publishing negative results alongside positive ones.</p>
+    <p><a href="https://github.com/dnd8639-byte">GitHub: dnd8639-byte</a></p>
+  </header>
+
+  <section aria-labelledby="proj-h">
+    <div class="eyebrow">Projects</div>
+    <h2 id="proj-h">Work so far</h2>
+    <ul class="projects">
+      <!-- To add a project: copy one <li class="project"> block, paste it at the top, and edit it.
+           New project pages go in their own folder; start from _template/index.html. -->
+      <li class="project">
+        <div class="meta"><span class="mono">Sept 2026</span><span class="pill info">Open source · Python</span></div>
+        <h3><a href="mcpt-lab/">mcpt-lab: a permutation-testing platform for trading strategies</a></h3>
+        <p>A Python library that tests whether a strategy beats the same tuning process run on hundreds of shuffled markets. I used it to replicate three published strategies, and then to measure how ten famous academic strategies performed after they were published.</p>
+        <p class="stat">12 strategy tests · 1 weak survivor · famous strategies kept 30% of their edge after publication, and none kept a reliable profit after costs</p>
+        <div class="links"><a href="mcpt-lab/">Results page</a><a href="https://github.com/dnd8639-byte/mcpt-lab">Code on GitHub</a></div>
+      </li>
+      <li class="project">
+        <div class="meta"><span class="mono">Sept 2026</span><span class="pill fail">13 tests · 0 passed</span></div>
+        <h3><a href="futures-research/">Preregistered futures research</a></h3>
+        <p>Trend-following, momentum, carry, spread mean-reversion and commodity-index roll strategies, each written down as a preregistration before being run on data. None survived. Along the way I found and documented nine bugs in the research pipeline, several of which manufacture fake profits on data with no edge at all.</p>
+        <p class="stat">13 preregistered tests · 0 passes · 9 pipeline bugs documented</p>
+        <div class="links"><a href="futures-research/">Write-up</a></div>
+      </li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="next-h">
+    <div class="eyebrow">In progress</div>
+    <h2 id="next-h">Next</h2>
+    <ul class="plain">
+      <li><strong>A Raspberry Pi paper-trading appliance.</strong> It will run the one strategy that survived, on live hourly Bitcoin data with no real money, log every signal, and check each one against the backtest run on the same bars. This tests the engineering, and it keeps extending the after-publication record.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="log-h">
+    <div class="eyebrow">Research log</div>
+    <h2 id="log-h">What happened, when</h2>
+    <!-- To add an entry: copy one <li> and put it at the top. Newest first. -->
+    <ol class="log" reversed>
+      <li><time datetime="2026-09-24">24 Sept 2026</time>Measured the ten famous strategies after trading costs and slippage. None keeps a reliable profit after publication. <a href="mcpt-lab/#decay-h">Results</a></li>
+      <li><time datetime="2026-09-24">24 Sept 2026</time>Preregistered publication-decay study: ten famous published strategies, 100 years of US stock data. After publication they kept 30% of their in-sample return. <a href="mcpt-lab/#decay-h">Results</a></li>
+      <li><time datetime="2026-09-24">24 Sept 2026</time>Released mcpt-lab: 12 permutation tests on three published strategies. One survived after publication, weakly. <a href="mcpt-lab/">Results</a></li>
+      <li><time datetime="2026-09-23">23 Sept 2026</time>Preregistered futures research, rounds v2–v5: 13 tests, 0 passes, 9 pipeline bugs documented. <a href="futures-research/">Write-up</a></li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>© 2026 David DeConti. Code is MIT-licensed; see each project for credits.</p>
+    <p>Research and education only, not investment advice.</p>
+  </footer>
+</main>
+</body>
+</html>

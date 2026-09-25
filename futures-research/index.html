@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preregistered futures research · David DeConti</title>
+<meta name="description" content="Thirteen preregistered tests of trend, momentum, carry, spread and roll strategies on futures and long-history data. None passed. Nine pipeline bugs documented.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.srows{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+.srow{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:12px;align-items:center;padding:5px 4px;border-radius:6px;outline:none}
+.srow:hover,.srow:focus-visible{background:var(--accent-soft)}
+.srow .nm{font-size:.86rem;line-height:1.25}
+.srow .nm small{display:block;color:var(--muted);font-size:.74rem}
+.track{position:relative;height:22px}
+.track .zero{position:absolute;top:0;bottom:0;width:1px;background:var(--muted)}
+.track .bar{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed var(--fail)}
+.track .dot{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--ink);border:2px solid var(--surface)}
+.track .val{position:absolute;top:1px;font-family:var(--mono);font-size:.72rem;color:var(--ink);white-space:nowrap}
+.axis{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:12px;padding:0 4px}
+.axis .ticks{position:relative;height:18px;font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.axis .ticks span{position:absolute;transform:translateX(-50%)}
+@media (max-width:640px){.srow,.axis{grid-template-columns:1fr;gap:2px}.axis>div:first-child{display:none}}
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../">David DeConti</a><nav><a href="../#proj-h">Projects</a><a href="../#log-h">Log</a></nav></div>
+<main>
+  <header style="display:flex;flex-direction:column;gap:16px">
+    <div class="eyebrow">Research · September 2026</div>
+    <h1>Preregistered futures research</h1>
+    <p class="lede">Thirteen tests of well-known strategy families: trend-following, momentum, carry, spread mean-reversion and front-running the commodity-index roll. Each test was written down before any data was run. <strong>None passed.</strong></p>
+  </header>
+
+  <div class="facts">
+    <div class="fact"><b class="mono">13</b><span>preregistered tests, all reported</span></div>
+    <div class="fact"><b class="mono">0</b><span>passed the preregistered bar</span></div>
+    <div class="fact"><b class="mono">9</b><span>bugs found in the research pipeline and documented</span></div>
+  </div>
+
+  <section aria-labelledby="how-h">
+    <div class="eyebrow">Method</div>
+    <h2 id="how-h">Write the rules first, then run the test</h2>
+    <p>Before each round I wrote a preregistration: the strategy, its fixed parameters, the data, the costs and the pass/fail rule, dated before any result existed. Every change made after a result was seen is recorded as a disclosed amendment, and both versions are reported.</p>
+    <ul class="plain">
+      <li><strong>A strategy passed only if it cleared three gates:</strong> a bootstrap confidence interval above zero, a <em>Deflated Sharpe Ratio</em> above 0.95 (which raises the bar for every test already tried), and a positive result on the most recent years.</li>
+      <li><strong>Every test counts.</strong> The trial count only goes up. After 11–13 tests, a strategy needed a net Sharpe ratio of about 0.68 to pass.</li>
+      <li><strong>The tester was tested first.</strong> Each round began with a harness on synthetic data: a planted edge had to be found, pure noise had to show nothing, and a deliberate look-ahead "canary" had to be caught.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="res-h">
+    <div class="eyebrow">Results</div>
+    <h2 id="res-h">Every test, against the bar it had to clear</h2>
+    <div class="chart">
+      <h3>Sharpe ratio after costs, per test</h3>
+      <div class="srows" id="srows" role="list"></div>
+      <div class="axis"><div></div><div class="ticks" id="ticks"></div></div>
+      <div class="tip" id="stip" hidden></div>
+      <div class="caption">Dot = annualized Sharpe ratio net of costs. <span style="color:var(--fail)">Dashed line</span> = about 0.68, the bar after 11–13 tests (earlier rounds had lower bars, about 0.40–0.45, and did not clear them either). v1 universes are shown with the corrected code (see bug 3). Hover or tap a row for details.</div>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Round</th><th>What was tested</th><th>Data</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">v1–v2</td><td>Volatility-scaled 1–4 month momentum, six universes</td><td>ETFs, futures, crypto, 49 US industries (1928–2026), macro markets (1973–2026)</td><td><span class="pill warn">Small, historical, gone since 2016</span></td></tr>
+        <tr><td class="mono">v3</td><td>12-month trend, cross-sectional momentum, carry, blend</td><td>Clean CME futures, 2010–2026, rebuilt contract by contract</td><td><span class="pill fail">Right sign, too small</span></td></tr>
+        <tr><td class="mono">v4</td><td>Mean reversion on economic spreads (Kalman filter + Ornstein–Uhlenbeck)</td><td>Crush, crack, Treasury curve, WTI–Brent, gold–silver</td><td><span class="pill fail">Significantly negative</span></td></tr>
+        <tr><td class="mono">v5</td><td>Front-running the commodity-index ("Goldman") roll</td><td>CL, HO, RB, NG calendar spreads</td><td><span class="pill fail">Faint trace, untradable</span></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section aria-labelledby="learn-h">
+    <div class="eyebrow">Findings</div>
+    <h2 id="learn-h">What the failures taught</h2>
+    <ul class="plain">
+      <li><strong>The historical momentum effect was real but small, and it has faded.</strong> On 98 years of industry data, shuffling the order of returns destroyed it (p = 0.009) and ordinary market exposures did not explain it. Since 2016 it has been flat to negative. The professional benchmark (AQR's trend factor) fell from a Sharpe of about 1.5 to 0.14 over the same period.</li>
+      <li><strong>Implementations were right; the edges were weak.</strong> My trend strategy correlated +0.82 with AQR's published trend factor. The signals pointed the right way, but 16 years of clean data cannot tell a Sharpe of 0.2–0.35 apart from luck after 11 tests.</li>
+      <li><strong>Bad data and small bugs manufacture profits.</strong> Three examples, each measured on data with no edge at all:
+        <ul class="plain" style="margin-top:6px">
+          <li>sizing positions with the same month's volatility produced a fake Sharpe of about +0.2;</li>
+          <li>using monthly-<em>average</em> prices instead of month-end prices produced a fake Sharpe of about +0.9 (and would have "passed" every gate);</li>
+          <li>fitting pairs-trading hedge ratios with hindsight produced about +0.5 on unrelated random walks.</li>
+        </ul>
+      </li>
+      <li><strong>Commodity data from free sources is badly distorted.</strong> Yahoo's continuous futures overstated natural-gas returns by about 24% a year, because roll losses were hidden in the splice. I rebuilt the futures series contract by contract from exchange data.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="bugs-h">
+    <div class="eyebrow">Engineering record</div>
+    <h2 id="bugs-h">Pipeline bugs found and documented</h2>
+    <p class="muted">Each one was found by a test or a check, fixed, and written down. Several were found only because the harness showed a profit where none could exist.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Bug</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr><td>Signal lagged twice</td><td>Trades used stale information; hid the next bug</td></tr>
+        <tr><td>Volatility look-ahead in position sizing</td><td>Fake Sharpe of about +0.2 on pure noise</td></tr>
+        <tr><td>Monthly-average data</td><td>Fake Sharpe of about +0.9; excluded by design before the data was downloaded</td></tr>
+        <tr><td>HTTP 206 ("partial success") treated as failure</td><td>Paid data discarded; one extra download</td></tr>
+        <tr><td>CME symbol reuse (<span class="mono">ESZ0</span> = Dec 2010 and Dec 2020)</td><td>Contracts mixed up; now keyed by instrument ID</td></tr>
+        <tr><td>Expiry estimated from the last bar</td><td>Impossible carry values (−149% a year); now read from the contract code</td></tr>
+        <tr><td>Kalman filter tuned in the wrong units</td><td>Filter absorbed the whole spread (half-life 10 days estimated as 0.5)</td></tr>
+        <tr><td>Sunday-evening and holiday bars counted as trading days</td><td>Roll window shifted about two days early; found after run 1, both runs reported</td></tr>
+      </tbody>
+    </table></div>
+    <p class="caption">Eight of the nine are described here. The ninth, from the first round of research, will be added once its notes are recovered.</p>
+  </section>
+
+  <section aria-labelledby="notes-h">
+    <div class="eyebrow">Notes</div>
+    <h2 id="notes-h">Limits and data</h2>
+    <ul class="plain">
+      <li>Clean futures data covers only 2010–2026, so small effects are hard to detect. A power analysis showed that even a real effect of the historical size would pass the strictest gate only 14–21% of the time.</li>
+      <li>The exchange data is licensed and cannot be redistributed. Long-history data comes from the Kenneth R. French Data Library and public sources.</li>
+      <li>This work led to <a href="../mcpt-lab/">mcpt-lab</a>, a reusable platform for the same kind of honest testing.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <p>© 2026 David DeConti. <a href="../">Back to the archive</a>.</p>
+    <p>Research and education only, not investment advice.</p>
+  </footer>
+</main>
+<script>
+// Net Sharpe per preregistered test. Source: RESULTS_v2.md ... RESULTS_v5.md
+const TESTS = [
+  ["v1–v2", "Momentum · ETF-20", "", 0.411, "v1 universe, rerun with corrected (causal) code"],
+  ["v1–v2", "Momentum · ETF-39", "", 0.213, "v1 universe, corrected code"],
+  ["v1–v2", "Momentum · futures", "", 0.127, "v1 universe, corrected code"],
+  ["v1–v2", "Momentum · crypto", "", -0.065, "v1 universe, corrected code"],
+  ["v1–v2", "Momentum · 49 industries", "1928–2026", 0.275, "95% CI +0.05 to +0.50; Deflated Sharpe 0.70 (needed 0.95); −0.14 since 2016"],
+  ["v1–v2", "Momentum · macro", "1973–2026", 0.334, "95% CI +0.06 to +0.60; Deflated Sharpe 0.80; −0.35 since 2016"],
+  ["v3", "Momentum (1–4 mo) · clean futures", "", 0.01, "Same strategy on clean CME data: gone"],
+  ["v3", "12-month trend", "", 0.22, "+0.42 before costs; correlates +0.82 with AQR's trend factor"],
+  ["v3", "Cross-sectional momentum", "", 0.31, "+0.50 before costs"],
+  ["v3", "Carry", "", 0.10, "+0.40 before costs"],
+  ["v3", "Blend", "", 0.34, "Best of the round; needed about 0.68"],
+  ["v4", "Spread mean reversion", "", -0.39, "−0.07 before costs; significantly negative after"],
+  ["v5", "Commodity-index roll", "", -1.06, "+0.18 before costs; the corrected run (run 1: −1.76)"],
+];
+const lo = -1.2, hi = 0.8, BAR = 0.68, pct = v => (v - lo) / (hi - lo) * 100;
+const box = document.getElementById("srows"), tip = document.getElementById("stip"), wrap = box.parentElement;
+const fmt = v => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(2);
+TESTS.forEach(([round, name, sub, v, note]) => {
+  const r = document.createElement("div"); r.className = "srow"; r.tabIndex = 0; r.setAttribute("role", "listitem");
+  r.setAttribute("aria-label", `${round} ${name}: Sharpe ${fmt(v)}. ${note}`);
+  const right = v < 0 || v > 0.3;     // label left of the dot when it would hit the zero line or the bar
+  r.innerHTML = `<div class="nm">${name}<small>${round}${sub ? " · " + sub : ""}</small></div>
+    <div class="track"><div class="zero" style="left:${pct(0)}%"></div><div class="bar" style="left:${pct(BAR)}%"></div>
+    <div class="dot" style="left:${pct(v)}%"></div>
+    <span class="val" style="${right ? `right:calc(${100 - pct(v)}% + 10px)` : `left:calc(${pct(v)}% + 10px)`}">${fmt(v)}</span></div>`;
+  const show = e => {
+    tip.innerHTML = `<b>${name}</b> · ${round}<br><span class="mono">net Sharpe ${fmt(v)}</span><br>${note}`;
+    tip.hidden = false;
+    const wb = wrap.getBoundingClientRect(), rb = r.getBoundingClientRect();
+    const x = (e && e.clientX ? e.clientX : rb.left + 60) - wb.left, y = (e && e.clientY ? e.clientY : rb.bottom - 8) - wb.top;
+    tip.style.left = Math.max(4, Math.min(wrap.clientWidth - tip.offsetWidth - 4, x + 14)) + "px";
+    tip.style.top = (y + 14) + "px";
+  };
+  r.addEventListener("pointermove", show); r.addEventListener("focus", () => show());
+  r.addEventListener("pointerleave", () => tip.hidden = true); r.addEventListener("blur", () => tip.hidden = true);
+  box.appendChild(r);
+});
+const ticks = document.getElementById("ticks");
+[-1, -0.5, 0, 0.5].forEach(v => ticks.insertAdjacentHTML("beforeend", `<span style="left:${pct(v)}%">${v}</span>`));
+ticks.insertAdjacentHTML("beforeend", `<span style="left:${pct(BAR)}%;color:var(--fail)">0.68</span>`);
+</script>
+</body>
+</html>
