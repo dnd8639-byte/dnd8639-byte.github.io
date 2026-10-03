@@ -7,6 +7,7 @@ index.html              home page: projects + research log
 assets/site.css         shared colors, fonts and layout (light and dark mode)
 mcpt-lab/               mcpt-lab results page (+ decay_data.json)
 futures-research/       preregistered futures research write-up
+quant-projects/         ten quant mini-projects: results page, figures/ and code/
 _template/              starting point for a new project page (not linked from the site)
 ```
 

@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ten quant mini-projects · David DeConti</title>
+<meta name="description" content="Ten small quantitative finance projects in Python. Each method is checked on data with a known answer before it is trusted on real markets.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.fig{margin:0;background:#fff;border:1px solid var(--rule);border-radius:10px;padding:8px;overflow-x:auto}
+.fig img{display:block;width:100%;min-width:560px;height:auto}
+.kv{display:grid;grid-template-columns:90px 1fr;gap:6px 14px;font-size:.95rem}
+.kv dt{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:.3em}
+.kv dd{margin:0;max-width:65ch}
+.head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:baseline}
+.toc{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;font-size:.93rem}
+.toc .mono{color:var(--muted);margin-right:8px}
+.src{font-size:.85rem;color:var(--muted)}
+@media (max-width:640px){.kv{grid-template-columns:1fr;gap:2px}.kv dt{padding-top:8px}.toc{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../">David DeConti</a><nav><a href="../#proj-h">Projects</a><a href="../#log-h">Log</a></nav></div>
+<main>
+  <header style="display:flex;flex-direction:column;gap:16px">
+    <div class="eyebrow">Research · 2026</div>
+    <h1>Ten quant mini-projects</h1>
+    <p class="lede">Ten standard tools of quantitative finance, each built as one short Python file. The rule for all ten: <strong>check the method on data where the answer is known before trusting it on a real market.</strong></p>
+    <p class="muted">The topics range from tail risk and option pricing to how markets absorb news. Several results went against what I expected, and I report those too.</p>
+  </header>
+
+  <div class="facts">
+    <div class="fact"><b class="mono">10</b><span>projects, each a single Python file using only numpy, pandas and matplotlib</span></div>
+    <div class="fact"><b class="mono">10 / 10</b><span>methods checked against a known answer first</span></div>
+    <div class="fact"><b class="mono">2</b><span>surprises: differentiating a simulation twice gives a gamma of zero, and a standard smoothing step did not improve the American put price</span></div>
+  </div>
+
+  <section aria-labelledby="toc-h">
+    <div class="eyebrow">Contents</div>
+    <h2 id="toc-h">The ten projects</h2>
+    <ul class="toc">
+      <li><span class="mono">01</span><a href="#tail">Hill estimator of the tail index</a></li>
+      <li><span class="mono">02</span><a href="#season">Intraday seasonality map</a></li>
+      <li><span class="mono">03</span><a href="#overfit">Backtest overfitting detector (Deflated Sharpe Ratio)</a></li>
+      <li><span class="mono">04</span><a href="#momentum">Regime-dependent momentum</a></li>
+      <li><span class="mono">05</span><a href="#neutral">Factor neutrality check</a></li>
+      <li><span class="mono">06</span><a href="#put">Crank-Nicolson and projected SOR</a></li>
+      <li><span class="mono">07</span><a href="#autodiff">Monte Carlo sensitivities by automatic differentiation</a></li>
+      <li><span class="mono">08</span><a href="#rnd">Implied risk-neutral distribution (Breeden-Litzenberger)</a></li>
+      <li><span class="mono">09</span><a href="#hawkes">Hawkes process on trade arrivals</a></li>
+      <li><span class="mono">10</span><a href="#news">Information diffusion: news to price</a></li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="tail">
+    <div class="eyebrow">Project 01 · Hill estimator of the tail index</div>
+    <div class="head"><h2 id="tail">How fat are the tails?</h2><span class="pill pass">Confirmed</span></div>
+    <p>Risk models often assume returns follow a bell curve. If large losses instead follow a power law, the bell curve badly understates them. The tail index alpha measures how fat the tail is: the smaller, the fatter.</p>
+    <figure class="fig"><img src="figures/p01_tail_index.png" alt="Hill plot of tail index against tail size for six markets, and a bar chart of Gaussian VaR breach rates, all above 1 percent" loading="lazy"></figure>
+    <dl class="kv">
+      <dt>Method</dt><dd>Hill estimator on the largest daily losses of Bitcoin and five futures markets. The estimate depends on how many losses count as “the tail”, so I plot it against that choice and read it where the curve is flat.</dd>
+      <dt>Check</dt><dd>On simulated data the estimator is exact for a pure power law (2.45 for a true 2.5) and reads low for other fat-tailed shapes (3.6 for a true 5), so I treat the real numbers as approximate.</dd>
+      <dt>Result</dt><dd><ul class="plain">
+          <li>Tail index of about 3 for Bitcoin, the S&P 500, crude oil and gold. Below 4 means kurtosis is not even finite.</li>
+          <li>A “99%” Gaussian risk limit, built only from past volatility, was broken on 1.4% to 2.3% of days in every market, not 1%.</li>
+          <li>Breaches cluster: after an S&P 500 breach, the chance of another the next day was 12%.</li>
+        </ul></dd>
+      <dt>Limits</dt><dd>The Hill estimator is biased when the tail is not a pure power law. Futures data is licensed and not included in the code folder.</dd>
+    </dl>
+    <p class="src">Source: Hill (1975), A simple general approach to inference about the tail of a distribution. · <a href="https://github.com/dnd8639-byte/dnd8639-byte.github.io/blob/main/quant-projects/code/p01_tail_index.py">Code</a></p>
+  </section>
+
+  <section aria-labelledby="season">
+    <div class="eyebrow">Project 02 · Intraday seasonality map</div>
+    <div class="head"><h2 id="season">Does the hour of the week matter for Bitcoin?</h2><span class="pill warn">Half true</span></div>
+    <p>Heatmaps of average returns by hour look full of patterns. But 168 cells of pure noise also make a pattern. Which patterns are real?</p>
+    <figure class="fig"><img src="figures/p02_intraday_seasonality.png" alt="Two heatmaps by day of week and hour: volatility shows a clear band of busy hours, direction shows no structure" loading="lazy"></figure>
+    <dl class="kv">
+      <dt>Method</dt><dd>76,513 hourly bars, 2018 to 2026. Two maps: the size of moves and the direction of moves. Each is tested by shuffling the hour labels within every week 500 times, and by checking whether the 2018–21 map predicts the 2022+ map.</dd>
+      <dt>Check</dt><dd>The shuffle keeps every week's returns and destroys only when in the week they happened.</dd>
+      <dt>Result</dt><dd><ul class="plain">
+          <li><strong>When</strong> Bitcoin moves is real: p = 0.002, and the early map correlates +0.63 with the later one. The busiest hour is 14:00 UTC, and weekends are 27% quieter.</li>
+          <li><strong>Which way</strong> it moves is not: p = 0.044 looks borderline, but the early map has a correlation of −0.02 with the later one. It does not repeat.</li>
+        </ul></dd>
+      <dt>Limits</dt><dd>One exchange's prices, UTC hours only. A p-value of 0.044 on one of two tests is about what luck produces.</dd>
+    </dl>
+    <p class="src">Source: Method: permutation test, as in my mcpt-lab project. · <a href="https://github.com/dnd8639-byte/dnd8639-byte.github.io/blob/main/quant-projects/code/p02_intraday_seasonality.py">Code</a></p>
+  </section>
+
+  <section aria-labelledby="overfit">
+    <div class="eyebrow">Project 03 · Backtest overfitting detector (Deflated Sharpe Ratio)</div>
+    <div class="head"><h2 id="overfit">How good does a lucky backtest look?</h2><span class="pill pass">Confirmed</span></div>
+    <p>Try enough strategies on any data and the best one looks excellent by luck alone. How excellent, and can that be predicted?</p>
+    <figure class="fig"><img src="figures/p03_overfitting_detector.png" alt="Histogram of Sharpe ratios of 1,000 random rules with the best rule and the formula&#x27;s prediction marked" loading="lazy"></figure>
+    <dl class="kv">
+      <dt>Method</dt><dd>1,000 random trading rules on real Bitcoin prices, each a coin flip with a random holding period. I keep the best and compare it with the formula for the best-of-N expected from pure noise. The Deflated Sharpe Ratio then gives the probability that a result beats that benchmark.</dd>
+      <dt>Check</dt><dd>The random rules are the check: they have no skill by construction.</dd>
+      <dt>Result</dt><dd><ul class="plain">
+          <li>The best random rule had a Sharpe ratio of 1.06. The formula predicted 1.12.</li>
+          <li>Judged alone, that rule scores 0.999 (“certainly real”). Counting the 999 others, it scores 0.43.</li>
+          <li>My own surviving strategy scores 0.90 after publication if counted as one test, and 0.45 if charged for all 25 tests in my ledger. Both are under the usual 0.95 bar.</li>
+        </ul></dd>
+      <dt>Limits</dt><dd>The formula assumes independent trials; real strategy variations are correlated, which makes it conservative.</dd>
+    </dl>
+    <p class="src">Source: Bailey and López de Prado (2014), The Deflated Sharpe Ratio. · <a href="https://github.com/dnd8639-byte/dnd8639-byte.github.io/blob/main/quant-projects/code/p03_overfitting_detector.py">Code</a></p>
+  </section>
+
+  <section aria-labelledby="momentum">
+    <div class="eyebrow">Project 04 · Regime-dependent momentum</div>
+    <div class="head"><h2 id="momentum">When does momentum crash?</h2><span class="pill warn">Replicated, fix has faded</span></div>
+    <p>Momentum (buy past winners, short past losers) earns a premium on average but has rare, violent crashes. Are the crashes predictable, and does the published fix still work?</p>
+    <figure class="fig"><img src="figures/p04_momentum_regimes.png" alt="Scatter of momentum against market returns with a downward-bending line in bear markets, and cumulative returns of plain and volatility-scaled momentum" loading="lazy"></figure>
+    <dl class="kv">
+      <dt>Method</dt><dd>US momentum factor, monthly, 1929 to 2026. A “bear market” is a negative market return over the previous 24 months, known in advance. I test whether momentum behaves like a written call option on a market rebound, then test scaling exposure by past volatility.</dd>
+      <dt>Check</dt><dd>All regime flags and volatility estimates use only earlier months.</dd>
+      <dt>Result</dt><dd><ul class="plain">
+          <li>Momentum earned +10.4% a year in normal markets and −9.3% in bear markets.</li>
+          <li>Its market beta is about 0 normally, −0.36 in a falling bear market and −0.90 in a rebounding one. All five of its worst months were months when the market rose, and four of them were in bear markets.</li>
+          <li>Volatility scaling lifts the Sharpe ratio from 0.43 to 0.70 over the full history. Since the fix was published (2016 on) it is 0.10 against 0.26: better, but both weak.</li>
+        </ul></dd>
+      <dt>Limits</dt><dd>Monthly data, so the volatility estimate is crude. The post-publication sample is only 127 months.</dd>
+    </dl>
+    <p class="src">Source: Daniel and Moskowitz (2016), Momentum crashes; Barroso and Santa-Clara (2015), Momentum has its moments. Data: Kenneth French Data Library. · <a href="https://github.com/dnd8639-byte/dnd8639-byte.github.io/blob/main/quant-projects/code/p04_momentum_regimes.py">Code</a></p>
+  </section>
+
+  <section aria-labelledby="neutral">
+    <div class="eyebrow">Project 05 · Factor neutrality check</div>
+    <div class="head"><h2 id="neutral">Is a strategy's return really its own?</h2><span class="pill pass">Passed</span></div>
+    <p>A strategy can look skilled while really being a hidden bet on something well known, such as the market going up. Regressing its returns on known factors separates the two.</p>
+    <figure class="fig"><img src="figures/p05_factor_neutrality.png" alt="Bar charts of momentum&#x27;s factor betas and of the Hawkes strategy&#x27;s return before and after removing exposure to Bitcoin&#x27;s direction" loading="lazy"></figure>
+    <dl class="kv">
+      <dt>Method</dt><dd>Regression with Newey-West standard errors. Applied to the momentum factor against five Fama-French factors, and to my own Bitcoin strategy against Bitcoin's direction and the size of its moves.</dd>
+      <dt>Check</dt><dd>500 fake strategies built as 0.5 × market + noise, with no skill. The test found a beta of 0.501 and raised a false alarm on 5.0% of them, exactly the rate it should.</dd>
+      <dt>Result</dt><dd><ul class="plain">
+          <li>Momentum is not a repackaged factor: a 9.0% a year alpha remains (t = 4.3), with a negative loading on value.</li>
+          <li>My Hawkes strategy has no hidden bet on Bitcoin's direction (beta −0.20 in-sample, +0.01 after publication, neither significant).</li>
+          <li>It does depend on Bitcoin making large moves, and its alpha t-statistic falls from 4.4 in-sample to 1.3 after publication.</li>
+        </ul></dd>
+      <dt>Limits</dt><dd>“The size of Bitcoin's move” is not something you can trade, so that loading describes the strategy but is not a hedgeable factor.</dd>
+    </dl>
+    <p class="src">Source: Fama and French (1993, 2015). Data: Kenneth French Data Library. · <a href="https://github.com/dnd8639-byte/dnd8639-byte.github.io/blob/main/quant-projects/code/p05_factor_neutrality.py">Code</a></p>
+  </section>
+
+  <section aria-labelledby="put">
+    <div class="eyebrow">Project 06 · Crank-Nicolson and projected SOR</div>
+    <div class="head"><h2 id="put">When should you exercise an American put?</h2><span class="pill pass">Verified</span></div>
+    <p>A European put has a pricing formula. An American put, which can be exercised at any time, does not: the price at which you should exercise has to be found together with the option's value.</p>
+    <figure class="fig"><img src="figures/p06_american_put.png" alt="American and European put values against stock price, the early-exercise boundary over time, and a convergence plot" loading="lazy"></figure>
+    <dl class="kv">
+      <dt>Method</dt><dd>The Black-Scholes equation on a grid, stepped backwards from expiry with Crank-Nicolson. Each step is solved by projected SOR: iterate towards the solution and clamp the value to the exercise payoff after every sweep.</dd>
+      <dt>Check</dt><dd>The European version matches the Black-Scholes formula to 0.003. The American price is compared with an independent 4,000-step binomial tree.</dd>
+      <dt>Result</dt><dd><ul class="plain">
+          <li>American put: 6.0896 on the finest grid, against 6.0904 from the tree.</li>
+          <li>Halving the grid spacing cuts the error by about 3.8 times, close to second-order accuracy.</li>
+          <li>With a year left, exercise below a stock price of 81; the boundary rises to the strike at expiry.</li>
+          <li>A standard smoothing step (Rannacher), meant to steady the sensitivities near the strike, did <strong>not</strong> improve the price here.</li>
+        </ul></dd>
+      <dt>Limits</dt><dd>One set of parameters (strike 100, 20% volatility, 5% rate, one year), no dividends.</dd>
+    </dl>
+    <p class="src">Source: Crank and Nicolson (1947); Cryer (1971), projected SOR; Rannacher (1984). · <a href="https://github.com/dnd8639-byte/dnd8639-byte.github.io/blob/main/quant-projects/code/p06_american_put.py">Code</a></p>
+  </section>
+
+  <section aria-labelledby="autodiff">
+    <div class="eyebrow">Project 07 · Monte Carlo sensitivities by automatic differentiation</div>
+    <div class="head"><h2 id="autodiff">Can a simulation differentiate itself?</h2><span class="pill warn">Works, with one failure</span></div>
+    <p>Traders need the sensitivities of a price (the “Greeks”). The old way reprices at a nudged input and subtracts, which is either noisy or biased. Automatic differentiation carries the derivative through the simulation instead.</p>
+    <figure class="fig"><img src="figures/p07_autodiff_greeks.png" alt="Histograms of delta estimates by three methods, and a bar chart of gamma estimates where naive autodiff is zero" loading="lazy"></figure>
+    <dl class="kv">
+      <dt>Method</dt><dd>I wrote forward-mode automatic differentiation from scratch (a 30-line “dual number” class) rather than using a library, and applied it to a Monte Carlo option pricer. Black-Scholes gives the exact answers to compare with.</dd>
+      <dt>Check</dt><dd>200 repeated runs of 20,000 paths each, so bias and noise are measured separately.</dd>
+      <dt>Result</dt><dd><ul class="plain">
+          <li>Delta: unbiased (0.6363 against an exact 0.6368), with 40 times less noise than repricing with fresh random numbers.</li>
+          <li>Gamma by differentiating twice returns <strong>exactly zero</strong>. The payoff has a kink, and its second derivative is zero on every simulated path. Autodiff differentiates the code, not the maths.</li>
+          <li>Fix: take one of the two derivatives from the probability density instead (likelihood-ratio method). Result 0.01873 against an exact 0.01876.</li>
+        </ul></dd>
+      <dt>Limits</dt><dd>European call only. Reverse-mode differentiation, which production systems use for many inputs at once, is not implemented.</dd>
+    </dl>
+    <p class="src">Source: Glasserman (2004), Monte Carlo Methods in Financial Engineering; Giles and Glasserman (2006), Smoking adjoints. · <a href="https://github.com/dnd8639-byte/dnd8639-byte.github.io/blob/main/quant-projects/code/p07_autodiff_greeks.py">Code</a></p>
+  </section>
+
+  <section aria-labelledby="rnd">
+    <div class="eyebrow">Project 08 · Implied risk-neutral distribution (Breeden-Litzenberger)</div>
+    <div class="head"><h2 id="rnd">What do option prices say about the future?</h2><span class="pill pass">Verified, run on real data</span></div>
+    <p>Option prices contain the market's probabilities for where the price will be at expiry: the density is the second derivative of the call price with respect to the strike. But a second derivative amplifies every rounding error.</p>
+    <figure class="fig"><img src="figures/p08_implied_distribution.png" alt="Three panels: naive differencing breaking on rounded prices, a skewed density with a fat left tail, and the density implied by SPY options against a lognormal" loading="lazy"></figure>
+    <dl class="kv">
+      <dt>Method</dt><dd>Convert each price to an implied volatility, fit a smooth curve weighted by how informative each option is, convert back to prices, then differentiate. Run on 193 SPY strikes expiring 30 October 2026.</dd>
+      <dt>Check</dt><dd>A fake chain with known volatility must return the exact lognormal curve (error under 0.1% of the peak). Rounding the same prices to cents makes naive differencing produce six negative probabilities; the smoothed method is unaffected.</dd>
+      <dt>Result</dt><dd><ul class="plain">
+          <li>The market's distribution for SPY is skewed left (skew −1.7); a bell curve with the same at-the-money volatility has none.</li>
+          <li>Options priced a 0.9% chance of a 15% or greater fall in four weeks. The bell curve says effectively zero.</li>
+          <li>Implied forward price 772.3 against a spot of 769.6, recovered from put-call parity.</li>
+        </ul></dd>
+      <dt>Limits</dt><dd>One snapshot, taken on a Saturday from Friday's closing quotes. These are risk-neutral probabilities: they include what investors pay for crash insurance, so they overstate real-world crash odds.</dd>
+    </dl>
+    <p class="src">Source: Breeden and Litzenberger (1978); Figlewski (2018), Risk-neutral densities: a review. · <a href="https://github.com/dnd8639-byte/dnd8639-byte.github.io/blob/main/quant-projects/code/p08_implied_distribution.py">Code</a></p>
+  </section>
+
+  <section aria-labelledby="hawkes">
+    <div class="eyebrow">Project 09 · Hawkes process on trade arrivals</div>
+    <div class="head"><h2 id="hawkes">Do trades trigger more trades?</h2><span class="pill warn">Fitted, model too simple</span></div>
+    <p>If trades arrived independently they would be evenly random in time. They are not: they come in bursts. A Hawkes process, the same model used for earthquake aftershocks, lets each trade raise the chance of the next.</p>
+    <figure class="fig"><img src="figures/p09_hawkes_trades.png" alt="A simulated bursty Hawkes process, a residual check plot, and branching ratios for real Bitcoin trades by six-hour block" loading="lazy"></figure>
+    <dl class="kv">
+      <dt>Method</dt><dd>Maximum-likelihood fit with an exponential kernel, using a recursion that avoids comparing every pair of trades. The key number is the branching ratio: the share of trades that are reactions to earlier trades.</dd>
+      <dt>Check</dt><dd>On four simulated processes with true branching ratios of 0, 0.3, 0.7 and 0.9, the fit returned 0.00, 0.29, 0.68 and 0.89, and passed the residual test each time.</dd>
+      <dt>Result</dt><dd><ul class="plain">
+          <li>On 24 hours of real BTC/USDT trades, the branching ratio was 0.47: roughly half of trades followed from other trades, with a half-life of 0.7 seconds.</li>
+          <li>It ranged from 0.23 to 0.66 across six-hour blocks.</li>
+          <li>The residual test <strong>fails</strong> on the real data (p < 0.01): one exponential kernel is too simple for real markets.</li>
+        </ul></dd>
+      <dt>Limits</dt><dd>One quiet day (2,076 trades) on a small exchange. A serious version needs a busier venue and a kernel with several time scales.</dd>
+    </dl>
+    <p class="src">Source: Hawkes (1971); Ogata (1988); Filimonov and Sornette (2012); Hardiman, Bercot and Bouchaud (2013). · <a href="https://github.com/dnd8639-byte/dnd8639-byte.github.io/blob/main/quant-projects/code/p09_hawkes_trades.py">Code</a></p>
+  </section>
+
+  <section aria-labelledby="news">
+    <div class="eyebrow">Project 10 · Information diffusion: news to price</div>
+    <div class="head"><h2 id="news">How fast does the market absorb news?</h2><span class="pill warn">Spike is real, the rest is unclear</span></div>
+    <p>When a scheduled announcement lands, how big is the burst of price activity, and how quickly does it fade?</p>
+    <figure class="fig"><img src="figures/p10_news_diffusion.png" alt="Price events per minute around news for simulated data with the fitted curve, and average Bitcoin move size around real announcements" loading="lazy"></figure>
+    <dl class="kv">
+      <dt>Method</dt><dd>32 announcements (22 Federal Reserve statements, 10 inflation releases) and Bitcoin one-minute bars for 12 hours either side. Large one-minute moves are modelled as a Hawkes process excited by the news and by earlier moves.</dd>
+      <dt>Check</dt><dd>Simulated data with a known 15-minute half-life returns 15.0 minutes. A placebo that moves the news six hours early finds no news effect at all, on simulated and on real data.</dd>
+      <dt>Result</dt><dd><ul class="plain">
+          <li>At the release minute, activity jumps to about 45 times the background rate, then fades with a half-life of about 5 minutes (11 minutes for Fed statements, 4 for inflation data).</li>
+          <li>Adding the news to the model improves the fit decisively (likelihood ratio 125, where 9.2 is the 1% threshold).</li>
+          <li>Only 3% of large moves in these windows are attributed to the news itself; 81% are the market reacting to its own moves.</li>
+        </ul></dd>
+      <dt>Limits</dt><dd>Both announcements land at the start of the busiest US trading hours, so the hours of raised activity after the spike may be ordinary time-of-day seasonality (project 2) and not news. Only the jump at the release minute is cleanly attributable. The right control is the same clock times on days with no release, which I have not run yet.</dd>
+    </dl>
+    <p class="src">Source: Rambaldi, Pennesi and Lillo (2015), Modeling FX market activity around macroeconomic news: a Hawkes process approach. · <a href="https://github.com/dnd8639-byte/dnd8639-byte.github.io/blob/main/quant-projects/code/p10_news_diffusion.py">Code</a></p>
+  </section>
+
+  <section aria-labelledby="run-h">
+    <div class="eyebrow">Code</div>
+    <h2 id="run-h">Run them yourself</h2>
+    <p>All ten files, the shared helpers and a script that downloads the public data are in the <a href="https://github.com/dnd8639-byte/dnd8639-byte.github.io/tree/main/quant-projects/code">code folder</a>. Projects 1 to 5 read Bitcoin and Kenneth French data from my <a href="../mcpt-lab/">mcpt-lab</a> project. Licensed futures data used in project 1 is not included.</p>
+  </section>
+
+  <footer>
+    <p>© 2026 David DeConti. <a href="../">Back to the archive</a>.</p>
+    <p>Research and education only, not investment advice.</p>
+  </footer>
+</main>
+</body>
+</html>
