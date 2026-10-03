@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paper-trading appliance · David DeConti</title>
+<meta name="description" content="A Raspberry Pi that runs one tested strategy on live Bitcoin prices with no real money, and audits every decision against the backtest.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.fig{margin:0;background:#fff;border:1px solid var(--rule);border-radius:10px;padding:8px;overflow-x:auto}
+.fig img{display:block;width:100%;min-width:560px;height:auto}
+.fig.dark{background:#333;max-width:520px}.fig.dark img{min-width:0}
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../">David DeConti</a><nav><a href="../#proj-h">Projects</a><a href="../#log-h">Log</a></nav></div>
+<main>
+  <header style="display:flex;flex-direction:column;gap:16px">
+    <div class="eyebrow">Hardware + software · 2026</div>
+    <h1>Paper-trading appliance</h1>
+    <p class="lede">A Raspberry Pi 5 that runs the one strategy that survived my testing on live hourly Bitcoin prices, <strong>with no real money</strong>. Its job is to answer an engineering question: does a live system make exactly the decisions the backtest says it should?</p>
+    <p class="muted">It went live on 3 October 2026. It reads public prices and writes decisions to a database. There is no order-placing code in it, and it needs no account or API key.</p>
+  </header>
+
+  <div class="facts">
+    <div class="fact"><b class="mono">720 / 720</b><span>replayed decisions equal to the backtest before it went live</span></div>
+    <div class="fact"><b class="mono">6</b><span>risk-gate checks; any failure means no position</span></div>
+    <div class="fact"><b class="mono">0</b><span>lines of code that can place an order</span></div>
+  </div>
+
+  <section aria-labelledby="q-h">
+    <div class="eyebrow">Question</div>
+    <h2 id="q-h">Why build it?</h2>
+    <p>A backtest assumes perfect data arriving on time. A live system gets late bars, missing bars, revised bars, power cuts and a clock that drifts. If the live decisions differ from the backtest, the backtest was describing a system that cannot exist.</p>
+    <p>The strategy is <a href="../mcpt-lab/">Volatility Hawkes</a>, with parameters frozen from 2018–2022 data. Its edge is small and fading, which is why it runs on paper. Every hour it runs also extends the strategy's after-publication record.</p>
+  </section>
+
+  <section aria-labelledby="m-h">
+    <div class="eyebrow">Design</div>
+    <h2 id="m-h">The same five steps, every hour</h2>
+    <figure class="fig"><img src="cycle.png" alt="Diagram of the hourly cycle: reconcile, risk gate, decide, record, audit, all reading and writing one SQLite database"></figure>
+    <ul class="plain">
+      <li><strong>Reconcile first.</strong> Pull the latest bars, repair gaps, and record any bar the exchange has changed.</li>
+      <li><strong>Risk gate.</strong> Stand aside if the data is stale, incomplete or absurd, if the clock is more than 30 seconds off, or if the kill switch is on.</li>
+      <li><strong>Decide.</strong> Run the same strategy class the backtests use, on all bars since a fixed start date, so every run is a pure function of stored data.</li>
+      <li><strong>Record.</strong> Write the decision once. It is never rewritten. Hours when the Pi was off are marked as missed, not filled in afterwards.</li>
+      <li><strong>Audit.</strong> Recompute every past decision from stored data and compare it with what was logged.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="t-h">
+    <div class="eyebrow">Testing</div>
+    <h2 id="t-h">Proved by replay before it ran live</h2>
+    <p>Thirty days of real hourly history were fed through the exact code the Pi runs, one hour at a time, with faults injected.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Test</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td>Clean replay</td><td>720 of 720 decisions equal the backtest; paper and backtest returns agree to six decimal places</td></tr>
+        <tr><td>Power cut for 30 hours, database closed and reopened</td><td>30 hours labelled missed; all 690 decisions made while running match</td></tr>
+        <tr><td>Missing bar, late bar, absurd price, clock two minutes off, kill switch</td><td>Flat or no decision each time; recovers without help</td></tr>
+        <tr><td>Exchange revises a bar after the decision</td><td>Revision recorded; every decision re-checked against the corrected data</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section aria-labelledby="h-h">
+    <div class="eyebrow">Hardware</div>
+    <h2 id="h-h">The build</h2>
+    <ul class="plain">
+      <li><strong>Raspberry Pi 5, 8 GB</strong>, running Raspberry Pi OS Lite and managed over SSH.</li>
+      <li><strong>512 GB NVMe SSD</strong> as the boot drive. A database written every hour wears out SD cards.</li>
+      <li><strong>128 × 64 OLED</strong> on the I2C pins, showing position, price, how many decisions match the backtest, and the paper return. The image below is drawn by the same code that drives the screen.</li>
+      <li><strong>systemd service</strong> that starts at boot, waits for the network and a correct clock, and restarts after a crash.</li>
+    </ul>
+    <figure class="fig dark"><img src="oled.png" alt="OLED layout: SHORT 66,187, match 72/72, paper +1.37% in normal mode; HALT with the reason GAP when standing aside"></figure>
+    <p class="caption">Normal operation (left) and standing aside (right), from a replay.</p>
+  </section>
+
+  <section aria-labelledby="l-h">
+    <div class="eyebrow">Notes</div>
+    <h2 id="l-h">Limits</h2>
+    <ul class="plain">
+      <li>Paper fills happen at the bar's closing price. A real fill would come seconds later at a slightly different price; that gap is not measured yet.</li>
+      <li>One exchange (Binance.US), which is a small venue.</li>
+      <li>The live record is new. It will take months before it says anything about the strategy itself.</li>
+    </ul>
+    <p><a href="https://github.com/dnd8639-byte/dnd8639-byte.github.io/tree/main/paper-trader/code">Code</a> · The strategy is by neurotrader888 (MIT licence); see <a href="../mcpt-lab/">mcpt-lab</a> for credits.</p>
+  </section>
+
+  <footer>
+    <p>© 2026 David DeConti. <a href="../">Back to the archive</a>.</p>
+    <p>Research and education only, not investment advice.</p>
+  </footer>
+</main>
+</body>
+</html>
